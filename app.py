@@ -6,7 +6,7 @@ from PIL import Image
 st.set_page_config(layout="wide", page_title="Adnan Bahçe Otomasyonu", page_icon="🌿")
 
 # --- SİTE HAFIZASI (SESSION STATE) ---
-# Buradaki hatalı kelimeyi sildim, orijinal temiz Python haline getirdim
+# Geçmiş verilerin kalıcı olması için başlangıç değerleri
 if "uygulama_gecmisi" not in st.session_state:
     st.session_state["uygulama_gecmisi"] = [
         {"Tarih": "2026/06/04", "Uygulanan Ürün": "Solucan Gübresi + Amino Asit", "Hedef Bitkiler": "Tüm Fideler & Mısırlar", "Miktar (L/Kg)": 0.50, "Durum": "Tamamlandı ✅"},
@@ -58,13 +58,10 @@ with tab1:
         
         miktar = st.number_input("Ürün başına miktar (L/Kg)", min_value=0.0, max_value=10.0, value=0.70, step=0.10)
         
-        if st.button("Sisteme İşle"):
-            if not secilen_urunler or not secilen_bitkiler:
-                st.warning("Lütfen önce ürün ve bitki seçimi yapın!")
-            else:
-                st.success("İşlem başarıyla sisteme kaydedildi ve veri tabanına işlendi! ✅")
-                
-                # Yeni veriyi listenin en başına ekliyoruz
+        # Hatalı çalışan st.rerun mantığını sildik.
+        # Doğrudan Python fonksiyonu ile listeye ekleme yapıyoruz ki kaybolmasın.
+        def veriyi_tabloya_ekle():
+            if secilen_urunler and secilen_bitkiler:
                 yeni_kayit = {
                     "Tarih": uygulama_tarihi.strftime("%Y/%m/%d"),
                     "Uygulanan Ürün": ", ".join(secilen_urunler),
@@ -73,7 +70,13 @@ with tab1:
                     "Durum": "Tamamlandı ✅"
                 }
                 st.session_state["uygulama_gecmisi"].insert(0, yeni_kayit)
-                st.rerun()
+                st.toast("Kayıt başarıyla listeye eklendi! 🌾")
+
+        if st.button("Sisteme İşle", on_click=veriyi_tabloya_ekle):
+            if not secilen_urunler or not secilen_bitkiler:
+                st.warning("Lütfen önce ürün ve bitki seçimi yapın!")
+            else:
+                st.success("İşlem başarıyla sisteme kaydedildi ve veri tabanına işlendi! ✅")
 
     # --- UYGULAMA GEÇMİŞİ GÖRÜNTÜLEME ALANI ---
     st.markdown("---")
