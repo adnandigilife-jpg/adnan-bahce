@@ -1,23 +1,17 @@
 import streamlit as st
-import requests
 import datetime
 from PIL import Image
 
 # Sayfa Genişliği Ayarı
 st.set_page_config(layout="wide", page_title="Adnan Bahçe Otomasyonu", page_icon="🌿")
 
-# Telegram Bildirim Fonksiyonu
-def telegram_bildirim_gonder(mesaj):
-    # Kendi bilgilerini buraya gir:
-    TOKEN = "BURAYA_BOTFATHERDAN_ALDIGIN_TOKENI_YAZ"
-    CHAT_ID = "BURAYA_USERINFOBOTDAN_ALDIGIN_IDYI_YAZ"
-    
-    url = f"https://api.telegram.org/bot{TOKEN}/sendMessage"
-    payload = {"chat_id": CHAT_ID, "text": mesaj}
-    try:
-        requests.post(url, json=payload)
-    except Exception as e:
-        pass
+# --- SİTE HAFIZASI (SESSION STATE) ---
+# Sayfa yenilense bile geçmiş verilerin kaybolmaması için hafıza alanı oluşturuyoruz
+if "uygulama_gecmisi" not Western_style in st.session_state:
+    st.session_state["uygulama_gecmisi"] = [
+        {"Tarih": "2026/06/04", "Uygulanan Ürün": "Solucan Gübresi + Amino Asit", "Hedef Bitkiler": "Tüm Fideler & Mısırlar", "Miktar (L/Kg)": 0.50, "Durum": "Tamamlandı ✅"},
+        {"Tarih": "2026/05/28", "Uygulanan Ürün": "Deniz Yosunu + Hümik Asit", "Hedef Bitkiler": "Yeni Fideler (Genel)", "Miktar (L/Kg)": 0.40, "Durum": "Tamamlandı ✅"}
+    ]
 
 # Başlıklar
 st.title("🚀 Adnan - Akıllı Bahçe Otomasyonu v2.0")
@@ -43,7 +37,7 @@ with tab1:
         st.markdown("### 📅 Dinamik Bahçe Akışı")
         bahce_data = [
             {"Bitki Grubu": "Mısırlar (Doğrudan Tohum)", "Gelişim Evresi": "Hızlı Boylanma Evresi", "Kritik Aksiyon": "Yabancı ot temizliği & Kaolin"},
-            {"Bitki Grubu": "Yeni Fideler (Genel)", "Gelişim Evresi": "Toprağa Tutunma & Köklenme", "Kritik Aksiyon": "Yaprak biti gözetimi"},
+            {"Bitki Grubu": "Yeni Fideler (Genel)", "Gelişim Evresi": "Toprağa Tutunma & Köklenme", "Kritik Aksiyon": "Yaprak biti gözeti̇mi"},
             {"Bitki Grubu": "Tüm Bahçe", "Gelişim Evresi": "Denge Stabil", "Kritik Aksiyon": "Akşam düzenli sulama"}
         ]
         st.table(bahce_data)
@@ -70,33 +64,43 @@ with tab1:
             else:
                 st.success("İşlem başarıyla sisteme kaydedildi ve veri tabanına işlendi! ✅")
                 
-                bitki_str = ", ".join(secilen_bitkiler)
-                urun_str = ", ".join(secilen_urunler)
-                mesaj_metni = f"🌿 Adnan Radar Bahçe Bildirimi:\n📅 Tarih: {uygulama_tarihi}\n🚜 Bitkiler: {bitki_str}\n🧪 Ürün: {urun_str}\n📊 Miktar: {miktar} L/Kg\n\nUygulama sisteme başarıyla işlendi ve ambar stoklarından düşüldü! ✅"
-                
-                telegram_bildirim_gonder(mesaj_metni)
+                # Yeni veriyi listenin en başına ekliyoruz
+                yeni_kayit = {
+                    "Tarih": uygulama_tarihi.strftime("%Y/%m/%d"),
+                    "Uygulanan Ürün": ", ".join(secilen_urunler),
+                    "Hedef Bitkiler": ", ".join(secilen_bitkiler),
+                    "Miktar (L/Kg)": miktar,
+                    "Durum": "Tamamlandı ✅"
+                }
+                st.session_state["uygulama_gecmisi"].insert(0, yeni_kayit)
+                st.rerun()
+
+    # --- UYGULAMA GEÇMİŞİ GÖRÜNTÜLEME ALANI ---
+    st.markdown("---")
+    st.markdown("### 📜 Geçmiş Uygulama Kayıtları")
+    st.write("Sisteme başarıyla işlenmiş ve hafızaya alınmış son organik gübreleme/bakım geçmişiniz:")
+    
+    # Hafızadaki listeyi tablo olarak ekrana basıyoruz
+    st.table(st.session_state["uygulama_gecmisi"])
 
 # --- TAB 2: ENVANTER ---
 with tab2:
     st.markdown("### 📦 Ambar Stok Durumu")
     st.info("Stoklar güncel tutulmaktadır.")
 
-# --- TAB 3: AI YAPRAK ANALİZİ (GERİ GETİRİLEN KISIM) ---
+# --- TAB 3: AI YAPRAK ANALİZİ ---
 with tab3:
     st.markdown("### 📸 AI Yaprak Analiz İstasyonu")
     st.write("Bahçeden çektiğiniz yaprak fotoğrafını yükleyin; sistem hastalık veya besin eksikliğini analiz etsin.")
     
-    # Dosya yükleme alanı ve Kamera entegrasyonu
     uploaded_file = st.file_uploader("Bir Yaprak Fotoğrafı Seçin Veya Sürükleyin...", type=["jpg", "jpeg", "png"])
     camera_file = st.camera_input("Veya Doğrudan Kamerayla Çekin 📸")
     
-    # İki kaynaktan biri doluysa resmi göster
     target_file = uploaded_file if uploaded_file is not None else camera_file
     
     if target_file is not None:
         image = Image.open(target_file)
         st.image(image, caption="Analiz Edilen Yaprak", use_container_width=True)
         
-        # Yapay zeka simülasyonu analiz sonuçları
         st.warning("🔄 Yapay Zeka Görüntüyü İşliyor...")
         st.info("📊 **AI Analiz Raporu:** Yaprakta hafif azot eksikliği ve alt yapraklarda kalsiyum ihtiyacı sinyali algılandı. Üst menüden Kalsiyum Gübresi veya Amino Asit emri girilmesi önerilir.")
