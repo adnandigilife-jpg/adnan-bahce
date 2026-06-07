@@ -6,8 +6,8 @@ from PIL import Image
 st.set_page_config(layout="wide", page_title="Adnan Bahçe Otomasyonu", page_icon="🌿")
 
 # --- SİTE HAFIZASI (SESSION STATE) ---
-# Sayfa yenilense bile geçmiş verilerin kaybolmaması için hafıza alanı oluşturuyoruz
-if "uygulama_gecmisi" not Western_style in st.session_state:
+# Buradaki hatalı kelimeyi sildim, orijinal temiz Python haline getirdim
+if "uygulama_gecmisi" not in st.session_state:
     st.session_state["uygulama_gecmisi"] = [
         {"Tarih": "2026/06/04", "Uygulanan Ürün": "Solucan Gübresi + Amino Asit", "Hedef Bitkiler": "Tüm Fideler & Mısırlar", "Miktar (L/Kg)": 0.50, "Durum": "Tamamlandı ✅"},
         {"Tarih": "2026/05/28", "Uygulanan Ürün": "Deniz Yosunu + Hümik Asit", "Hedef Bitkiler": "Yeni Fideler (Genel)", "Miktar (L/Kg)": 0.40, "Durum": "Tamamlandı ✅"}
@@ -37,7 +37,7 @@ with tab1:
         st.markdown("### 📅 Dinamik Bahçe Akışı")
         bahce_data = [
             {"Bitki Grubu": "Mısırlar (Doğrudan Tohum)", "Gelişim Evresi": "Hızlı Boylanma Evresi", "Kritik Aksiyon": "Yabancı ot temizliği & Kaolin"},
-            {"Bitki Grubu": "Yeni Fideler (Genel)", "Gelişim Evresi": "Toprağa Tutunma & Köklenme", "Kritik Aksiyon": "Yaprak biti gözeti̇mi"},
+            {"Bitki Grubu": "Yeni Fideler (Genel)", "Gelişim Evresi": "Toprağa Tutunma & Köklenme", "Kritik Aksiyon": "Yaprak biti gözetimi"},
             {"Bitki Grubu": "Tüm Bahçe", "Gelişim Evresi": "Denge Stabil", "Kritik Aksiyon": "Akşam düzenli sulama"}
         ]
         st.table(bahce_data)
@@ -80,7 +80,6 @@ with tab1:
     st.markdown("### 📜 Geçmiş Uygulama Kayıtları")
     st.write("Sisteme başarıyla işlenmiş ve hafızaya alınmış son organik gübreleme/bakım geçmişiniz:")
     
-    # Hafızadaki listeyi tablo olarak ekrana basıyoruz
     st.table(st.session_state["uygulama_gecmisi"])
 
 # --- TAB 2: ENVANTER ---
