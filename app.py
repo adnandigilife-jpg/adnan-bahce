@@ -23,14 +23,7 @@ URUNLER = [
     "Kabak", "Bamya", "Karpuz", "Patlıcan"
 ]
 
-ISLEMLER = [
-    "Sulama",
-    "Gübre",
-    "İlaçlama",
-    "Fotoğraf",
-    "Gözlem",
-    "Hasat"
-]
+ISLEMLER = ["Sulama", "Gübre", "İlaçlama", "Fotoğraf", "Gözlem", "Hasat"]
 
 
 def db_baglan():
@@ -64,12 +57,7 @@ def kayit_ekle(tarih, urun, islem, miktar, notlar, foto_yolu):
         (tarih, urun, islem, miktar, notlar, foto_yolu, kayit_zamani)
         VALUES (?, ?, ?, ?, ?, ?, ?)
     """, (
-        str(tarih),
-        urun,
-        islem,
-        miktar,
-        notlar,
-        foto_yolu,
+        str(tarih), urun, islem, miktar, notlar, foto_yolu,
         datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     ))
     conn.commit()
@@ -112,20 +100,21 @@ def foto_kaydet(uploaded_file, urun, tarih):
 def basit_oneri(df):
     oneriler = []
 
-    bugun = date.today().isoformat()
-
     for urun in URUNLER:
         urun_df = df[df["urun"] == urun] if not df.empty else pd.DataFrame()
 
         if urun_df.empty:
-            oneriler.append((urun, "Kayıt yok", "Bu ürün için ilk kayıt girilmeli."))
+            oneriler.append((urun, "Kayıt yok", "Bu ürün için henüz kayıt girilmemiş."))
             continue
 
         son_kayit = urun_df.iloc[0]
         son_islem = son_kayit["islem"]
         son_tarih = son_kayit["tarih"]
 
-        gun_farki = (date.today() - datetime.strptime(son_tarih, "%Y-%m-%d").date()).days
+        gun_farki = (
+            date.today() -
+            datetime.strptime(son_tarih, "%Y-%m-%d").date()
+        ).days
 
         if son_islem == "Gübre" and gun_farki <= 2:
             oneriler.append((urun, "Bekle", "Son gübre uygulaması yeni. Üst üste yükleme yapma."))
@@ -140,31 +129,6 @@ def basit_oneri(df):
 
 
 tablo_olustur()
-
-st.markdown("""
-<style>
-.main {
-    background: linear-gradient(135deg, #f0fdf4 0%, #ecfeff 50%, #fff7ed 100%);
-}
-.block-container {
-    padding-top: 2rem;
-}
-.big-card {
-    background: rgba(255,255,255,0.85);
-    padding: 24px;
-    border-radius: 24px;
-    border: 1px solid rgba(34,197,94,0.18);
-    box-shadow: 0 10px 30px rgba(20,83,45,0.08);
-}
-.small-card {
-    background: white;
-    padding: 18px;
-    border-radius: 20px;
-    border: 1px solid #dcfce7;
-    box-shadow: 0 5px 18px rgba(20,83,45,0.05);
-}
-</style>
-""", unsafe_allow_html=True)
 
 st.title("🌱 Adnan Bahçe Asistanı")
 st.caption("Sulama, gübre, ilaç, fotoğraf, gözlem ve hasat kayıt sistemi")
@@ -181,18 +145,24 @@ tab1, tab2, tab3, tab4 = st.tabs([
 with tab1:
     st.subheader("➕ Yeni Bahçe Kaydı")
 
-    col1, col2, col3 = st.columns(3)
+    col1, col2 = st.columns(2)
 
     with col1:
         tarih = st.date_input("Tarih", value=date.today())
 
     with col2:
-        urun = st.selectbox("Ürün", URUNLER)
-
-    with col3:
         islem = st.selectbox("İşlem", ISLEMLER)
 
-    miktar = st.text_input("Miktar / Ölçü", placeholder="Örn: 100 ml amino asit, 70 litre su, 350 ml Calpower-B")
+    secilen_urunler = st.multiselect(
+        "Ürünler",
+        URUNLER,
+        default=URUNLER
+    )
+
+    miktar = st.text_input(
+        "Miktar / Ölçü",
+        placeholder="Örn: 100 ml amino asit, 70 litre su, 350 ml Calpower-B"
+    )
 
     notlar = st.text_area(
         "Not",
@@ -202,10 +172,15 @@ with tab1:
     foto = st.file_uploader("Fotoğraf ekle", type=["jpg", "jpeg", "png"])
 
     if st.button("✅ Kaydı Kaydet", use_container_width=True):
-        foto_yolu = foto_kaydet(foto, urun, tarih)
-        kayit_ekle(tarih, urun, islem, miktar, notlar, foto_yolu)
-        st.success("Kayıt kalıcı olarak kaydedildi. Siteyi kapatıp açsan da duracak.")
-        st.rerun()
+        if not secilen_urunler:
+            st.error("En az bir ürün seçmelisin.")
+        else:
+            for urun in secilen_urunler:
+                foto_yolu = foto_kaydet(foto, urun, tarih)
+                kayit_ekle(tarih, urun, islem, miktar, notlar, foto_yolu)
+
+            st.success(f"{len(secilen_urunler)} ürün için kayıt kaydedildi.")
+            st.rerun()
 
 with tab2:
     st.subheader("📋 Geçmiş Kayıtlar")
@@ -213,8 +188,8 @@ with tab2:
     if df.empty:
         st.info("Henüz kayıt yok.")
     else:
-        filtre_urun = st.selectbox("Ürüne göre filtrele", ["Tümü"] + URUNLER, key="filtre_urun")
-        filtre_islem = st.selectbox("İşleme göre filtrele", ["Tümü"] + ISLEMLER, key="filtre_islem")
+        filtre_urun = st.selectbox("Ürüne göre filtrele", ["Tümü"] + URUNLER)
+        filtre_islem = st.selectbox("İşleme göre filtrele", ["Tümü"] + ISLEMLER)
 
         goster = df.copy()
 
