@@ -4,7 +4,7 @@ import os
 import pandas as pd
 from PIL import Image
 
-# 🔥BÜYÜK FOTOĞRAFLAR İÇİN GÜVENLİK SINIRINI KALDIRIYORUZ (HATAYI ÇÖZEN KISIM)
+# 🚀 BÜYÜK FOTOĞRAFLAR İÇİN GÜVENLİK SINIRINI KALDIRIYORUZ (YAPRAK ANALİZİNDEKİ BOMBA HATASINI ÇÖZER)
 Image.MAX_IMAGE_PIXELS = None 
 
 # 1. SAYFA AYARLARI
@@ -16,6 +16,7 @@ CSV_FILE = "bahce_gubreleme_veritabanı.csv"
 if not os.path.exists(CSV_FILE):
     df_init = pd.DataFrame(columns=["Tarih", "Uygulanan Ürün", "Hedef Bitkiler", "Miktar (L/Kg)", "Uygulama Tipi"])
     default_data = [
+        {"Tarih": "2026/06/07", "Uygulanan Ürün": "Amino Asit", "Hedef Bitkiler": "Tüm Bahçe", "Miktar (L/Kg)": 0.70, "Uygulama Tipi": "Kökten Gübreleme / Damlama"},
         {"Tarih": "2026/06/04", "Uygulanan Ürün": "Solucan Gübresi + Amino Asit", "Hedef Bitkiler": "Tüm Fideler & Mısırlar", "Miktar (L/Kg)": 0.50, "Uygulama Tipi": "Kökten Gübreleme"},
         {"Tarih": "2026/05/28", "Uygulanan Ürün": "Deniz Yosunu + Hümik Asit", "Hedef Bitkiler": "Yeni Fideler (Genel)", "Miktar (L/Kg)": 0.40, "Uygulama Tipi": "Kökten Gübreleme"}
     ]
@@ -79,20 +80,15 @@ with tab1:
         uygulama_tipi = st.selectbox("Uygulama Yöntemi", ["Kökten Gübreleme / Damlama", "Yapraktan Pülverize (Sprey)", "Toprak Hazırlığı"])
         miktar = st.number_input("Ürün Başına Miktar (L/Kg veya Gr/10L)", min_value=0.0, max_value=50.0, value=0.70, step=0.10)
         
-        def veriyi_tabloya_ekle():
-            if secilen_urunler and secilen_bitkiler:
-                urun_str = ", ".join(secilen_urunler)
-                bitki_str = ", ".join(secilen_bitkiler)
-                veri_ekle(uygulama_tarihi, urun_str, bitki_str, miktar, uygulama_tipi)
-                st.toast("Kayıt başarıyla veri tabanına kilitlendi! 🌾")
-
         if st.button("Sisteme İşle (Kalıcı Kaydet)"):
             if not secilen_urunler or not secilen_bitkiler:
                 st.warning("⚠️ Lütfen önce ürün ve bitki seçimi yapın!")
             else:
-                veriyi_tabloya_ekle()
+                urun_str = ", ".join(secilen_urunler)
+                bitki_str = ", ".join(secilen_bitkiler)
+                veri_ekle(uygulama_tarihi, urun_str, bitki_str, miktar, uygulama_tipi)
                 st.success("✅ Başarılı! Kayıt kalıcı geçmişe eklendi.")
-                st.balloons()
+                st.rerun()
 
     with col2:
         st.markdown("### 📜 Kalıcı Uygulama Geçmişi")
@@ -104,6 +100,7 @@ with tab2:
     st.markdown("### 📅 Organik Bakım & Hatırlatma Takvimi")
     df_analiz = verileri_yukle()
     
+    # Güvenli arama işlevi
     kaolin_kontrol = df_analiz[df_analiz["Uygulanan Ürün"].str.contains("Kaolin Kili", na=False)]
     st.markdown("#### ⚪ Kaolin Kili Sinyali (Güneş Yanıklığı & Trips Koruması)")
     if kaolin_kontrol.empty:
@@ -112,9 +109,11 @@ with tab2:
         st.success("✅ Yakın zamanda Kaolin Kili uygulaması yapılmış.")
         
     st.markdown("---")
+    
+    # 🔥 ARKA PLANDAKİ HARF HATASI BURADA DÜZELTİLDİ
     gulleci_kontrol = df_analiz[df_analiz["Uygulanan Ürün"].str.contains("Gülleci Bulamacı", na=False)]
     st.markdown("#### 🟡 Gülleci Bulamacı Sinyali (Zararlı & Mantar Kontrolü)")
-    if gülleci_kontrol.empty:
+    if gulleci_kontrol.empty:
         st.warning("⚠️ Bahçede aktif gülleci bulamacı kaydı yok. 15 günde bir periyodik dozlama planlayın.")
     else:
         st.success("✅ Gülleci bulamacı koruması aktif.")
