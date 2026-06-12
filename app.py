@@ -388,3 +388,121 @@ export default function LogForm() {
     </div>
   );
 }
+// components/PhotoAnalyzer.tsx
+
+"use client";
+
+import { useState } from "react";
+
+type AnalysisResult = {
+  plant: string;
+  healthScore: number;
+  waterStress: string;
+  nutrientStatus: string;
+  diseaseRisk: string;
+  pestRisk: string;
+  recommendation: string;
+};
+
+export default function PhotoAnalyzer() {
+  const [image, setImage] = useState<File | null>(null);
+
+  const [loading, setLoading] = useState(false);
+
+  const [result, setResult] =
+    useState<AnalysisResult | null>(null);
+
+  const analyzePhoto = async () => {
+    if (!image) return;
+
+    setLoading(true);
+
+    // Burada OpenAI veya Gemini API çağrılacak
+
+    setTimeout(() => {
+      setResult({
+        plant: "Mısır",
+        healthScore: 91,
+        waterStress: "Düşük",
+        nutrientStatus: "Yeterli",
+        diseaseRisk: "Düşük",
+        pestRisk: "Düşük",
+        recommendation:
+          "Şu an gübreleme gerekmiyor. Toprak nemi takip edilmeli."
+      });
+
+      setLoading(false);
+    }, 2000);
+  };
+
+  return (
+    <div className="rounded-3xl border border-green-100 bg-white p-6 shadow-lg">
+
+      <h2 className="text-2xl font-bold">
+        Yapay Zeka Fotoğraf Analizi
+      </h2>
+
+      <p className="mt-2 text-gray-500">
+        Bitki fotoğrafı yükle.
+      </p>
+
+      <input
+        type="file"
+        accept="image/*"
+        className="mt-4 w-full rounded-xl border p-3"
+        onChange={(e) => {
+          if (e.target.files?.[0]) {
+            setImage(e.target.files[0]);
+          }
+        }}
+      />
+
+      <button
+        onClick={analyzePhoto}
+        className="mt-4 w-full rounded-2xl bg-green-600 py-3 font-semibold text-white"
+      >
+        Analiz Et
+      </button>
+
+      {loading && (
+        <div className="mt-4 rounded-xl bg-blue-50 p-4">
+          Fotoğraf analiz ediliyor...
+        </div>
+      )}
+
+      {result && (
+        <div className="mt-6 space-y-3">
+
+          <div className="rounded-xl bg-green-50 p-4">
+            Bitki: {result.plant}
+          </div>
+
+          <div className="rounded-xl bg-green-50 p-4">
+            Sağlık Skoru: %{result.healthScore}
+          </div>
+
+          <div className="rounded-xl bg-green-50 p-4">
+            Su Stresi: {result.waterStress}
+          </div>
+
+          <div className="rounded-xl bg-green-50 p-4">
+            Besin Durumu: {result.nutrientStatus}
+          </div>
+
+          <div className="rounded-xl bg-green-50 p-4">
+            Hastalık Riski: {result.diseaseRisk}
+          </div>
+
+          <div className="rounded-xl bg-green-50 p-4">
+            Zararlı Riski: {result.pestRisk}
+          </div>
+
+          <div className="rounded-xl bg-yellow-50 p-4">
+            Öneri: {result.recommendation}
+          </div>
+
+        </div>
+      )}
+    </div>
+  );
+}
