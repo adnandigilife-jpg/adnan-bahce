@@ -1,139 +1,390 @@
-import streamlit as st
-import datetime
-import os
-import pandas as pd
-from PIL import Image
+// app/page.tsx
 
-# 🚀 BÜYÜK FOTOĞRAFLAR İÇİN GÜVENLİK SINIRINI KALDIRIYORUZ (YAPRAK ANALİZİNDEKİ BOMBA HATASINI ÇÖZER)
-Image.MAX_IMAGE_PIXELS = None 
+import { CropCard } from "@/components/CropCard";
+import { GrowthChart } from "@/components/GrowthChart";
+import { LogForm } from "@/components/LogForm";
+import { RecommendationPanel } from "@/components/RecommendationPanel";
+import { crops } from "@/lib/data";
+import { Camera, CloudSun, Leaf, CalendarDays } from "lucide-react";
 
-# 1. SAYFA AYARLARI
-st.set_page_config(layout="wide", page_title="Adnan Radar Bahçe Otomasyonu", page_icon="🌿")
+export default function HomePage() {
+  return (
+    <main className="mx-auto max-w-7xl px-4 py-8">
+      <section className="mb-8 grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
+        <div className="card p-8">
+          <p className="mb-3 inline-flex rounded-full bg-green-100 px-4 py-2 text-sm font-bold text-green-800">
+            Profesyonel bahçe takip paneli
+          </p>
 
-# 2. KALICI VERİ TABANI MOTORU (CSV)
-CSV_FILE = "bahce_gubreleme_veritabanı.csv"
+          <h1 className="text-4xl font-black tracking-tight md:text-6xl">
+            Adnan Bahçe Asistanı
+          </h1>
 
-if not os.path.exists(CSV_FILE):
-    df_init = pd.DataFrame(columns=["Tarih", "Uygulanan Ürün", "Hedef Bitkiler", "Miktar (L/Kg)", "Uygulama Tipi"])
-    default_data = [
-        {"Tarih": "2026/06/07", "Uygulanan Ürün": "Amino Asit", "Hedef Bitkiler": "Tüm Bahçe", "Miktar (L/Kg)": 0.70, "Uygulama Tipi": "Kökten Gübreleme / Damlama"},
-        {"Tarih": "2026/06/04", "Uygulanan Ürün": "Solucan Gübresi + Amino Asit", "Hedef Bitkiler": "Tüm Fideler & Mısırlar", "Miktar (L/Kg)": 0.50, "Uygulama Tipi": "Kökten Gübreleme"},
-        {"Tarih": "2026/05/28", "Uygulanan Ürün": "Deniz Yosunu + Hümik Asit", "Hedef Bitkiler": "Yeni Fideler (Genel)", "Miktar (L/Kg)": 0.40, "Uygulama Tipi": "Kökten Gübreleme"}
-    ]
-    df_init = pd.concat([df_init, pd.DataFrame(default_data)], ignore_index=True)
-    df_init.to_csv(CSV_FILE, index=False, encoding="utf-8")
+          <p className="mt-4 max-w-2xl text-lg text-slate-600">
+            Günlük fotoğraf, sulama, gübre, ilaç, zararlı ve gelişim kayıtlarını
+            tek yerde takip et.
+          </p>
 
-def verileri_yukle():
-    return pd.read_csv(CSV_FILE, encoding="utf-8")
+          <div className="mt-6 grid gap-3 sm:grid-cols-4">
+            <Info icon={<Leaf />} title="9 ürün" text="Ayrı takip" />
+            <Info icon={<Camera />} title="Fotoğraf" text="Gelişim arşivi" />
+            <Info icon={<CloudSun />} title="Hava" text="Sulama kararı" />
+            <Info icon={<CalendarDays />} title="Takvim" text="Hatırlatma" />
+          </div>
+        </div>
 
-def veri_ekle(tarih, urun, bitkiler, miktar, tip):
-    df = verileri_yukle()
-    yeni_satir = pd.DataFrame([{
-        "Tarih": tarih.strftime("%Y/%m/%d"),
-        "Uygulanan Ürün": urun,
-        "Hedef Bitkiler": bitkiler,
-        "Miktar (L/Kg)": miktar,
-        "Uygulama Tipi": tip
-    }])
-    df = pd.concat([yeni_satir, df], ignore_index=True)
-    df.to_csv(CSV_FILE, index=False, encoding="utf-8")
+        <RecommendationPanel />
+      </section>
 
-# 3. BAŞLIKLAR
-st.title("🚀 Adnan Radar - Akıllı Tarım Veri Takip Sitesi")
-st.markdown("---")
+      <section className="mb-8 grid gap-6 lg:grid-cols-[0.8fr_1.2fr]">
+        <LogForm />
+        <GrowthChart />
+      </section>
 
-# 4. YAN MENÜ (SIDEBAR)
-st.sidebar.markdown("### ☀️ Adana Canlı Hava Durumu")
-sicaklik = st.sidebar.slider("Anlık Adana Sıcaklığı (°C)", 0, 50, 36)
-nem = st.sidebar.slider("Anlık Nem Oranı (%)", 0, 100, 50)
+      <section>
+        <h2 className="mb-4 text-2xl font-black">Ürünlerim</h2>
 
-st.sidebar.markdown("---")
-st.sidebar.markdown("### 📋 Sistem Kapsamı")
-st.sidebar.info("""
-* Kimyasal içermeyen gübreleme planı,
-* Kaolin kili koruma takvimi,
-* Gülleci bulamacı uygulamaları,
-* AI Yaprak Analiz İstasyonu.
-""")
+        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          {crops.map((crop) => (
+            <CropCard key={crop.id} crop={crop} />
+          ))}
+        </div>
+      </section>
+    </main>
+  );
+}
 
-# 5. ANA SEKMELER
-tab1, tab2, tab3 = st.tabs([
-    "📋 İşlem Girişi & Kalıcı Geçmiş", 
-    "📅 Periyodik Gübre & Hatırlatma Takvimi", 
-    "📸 AI Yaprak Analiz İstasyonu"
-])
+function Info({
+  icon,
+  title,
+  text,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  text: string;
+}) {
+  return (
+    <div className="rounded-3xl bg-white/70 p-4">
+      <div className="mb-2 h-6 w-6 text-green-700">{icon}</div>
+      <b>{title}</b>
+      <p className="text-sm text-slate-600">{text}</p>
+    </div>
+  );
+}// lib/data.ts
 
-# --- SEKME 1: İŞLEM GİRİŞİ & KALICI GEÇMİŞ ---
-with tab1:
-    col1, col2 = st.columns([1, 1])
-    with col1:
-        st.markdown("### ➕ Yeni İşlem Emir Girişi")
-        uygulama_tarihi = st.date_input("Uygulama Tarihi", datetime.date(2026, 6, 7))
-        secilen_urunler = st.multiselect(
-            "Uygulanan Organik/Doğal Ürünler",
-            ["Kalsiyum Gübresi", "Solucan Gübresi", "Deniz Yosunu", "Amino Asit", "Hümik Asit", "Kaolin Kili", "Gülleci Bulamacı"]
-        )
-        secilen_bitkiler = st.multiselect(
-            "Uygulanan Bitkiler",
-            ["Mısır", "Domates", "Biber", "Patlıcan", "Salatalık", "Karpuz", "Tüm Bahçe"]
-        )
-        uygulama_tipi = st.selectbox("Uygulama Yöntemi", ["Kökten Gübreleme / Damlama", "Yapraktan Pülverize (Sprey)", "Toprak Hazırlığı"])
-        miktar = st.number_input("Ürün Başına Miktar (L/Kg veya Gr/10L)", min_value=0.0, max_value=50.0, value=0.70, step=0.10)
-        
-        if st.button("Sisteme İşle (Kalıcı Kaydet)"):
-            if not secilen_urunler or not secilen_bitkiler:
-                st.warning("⚠️ Lütfen önce ürün ve bitki seçimi yapın!")
-            else:
-                urun_str = ", ".join(secilen_urunler)
-                bitki_str = ", ".join(secilen_bitkiler)
-                veri_ekle(uygulama_tarihi, urun_str, bitki_str, miktar, uygulama_tipi)
-                st.success("✅ Başarılı! Kayıt kalıcı geçmişe eklendi.")
-                st.rerun()
+import { Crop, GardenLog } from "./types";
 
-    with col2:
-        st.markdown("### 📜 Kalıcı Uygulama Geçmişi")
-        guncel_df = verileri_yukle()
-        st.dataframe(guncel_df, use_container_width=True)
+export const crops: Crop[] = [
+  {
+    id: "misir",
+    name: "Mısır",
+    stage: "Boylanma / koçan öncesi",
+    healthScore: 91,
+    lastWateredDays: 2,
+    lastFedDays: 1,
+    note: "Amino asit dün uygulandı. Yaprak rengi iyi."
+  },
 
-# --- SEKME 2: PERİYODİK GÜBRE & HATIRLATMA TAKVİMİ ---
-with tab2:
-    st.markdown("### 📅 Organik Bakım & Hatırlatma Takvimi")
-    df_analiz = verileri_yukle()
-    
-    # Güvenli arama işlevi
-    kaolin_kontrol = df_analiz[df_analiz["Uygulanan Ürün"].str.contains("Kaolin Kili", na=False)]
-    st.markdown("#### ⚪ Kaolin Kili Sinyali (Güneş Yanıklığı & Trips Koruması)")
-    if kaolin_kontrol.empty:
-        st.error("🚨 Sistemde henüz Kaolin Kili kaydı bulunamadı! İlk kaplamayı yapmanız önerilir.")
-    else:
-        st.success("✅ Yakın zamanda Kaolin Kili uygulaması yapılmış.")
-        
-    st.markdown("---")
-    
-    # 🔥 ARKA PLANDAKİ HARF HATASI BURADA DÜZELTİLDİ
-    gulleci_kontrol = df_analiz[df_analiz["Uygulanan Ürün"].str.contains("Gülleci Bulamacı", na=False)]
-    st.markdown("#### 🟡 Gülleci Bulamacı Sinyali (Zararlı & Mantar Kontrolü)")
-    if gulleci_kontrol.empty:
-        st.warning("⚠️ Bahçede aktif gülleci bulamacı kaydı yok. 15 günde bir periyodik dozlama planlayın.")
-    else:
-        st.success("✅ Gülleci bulamacı koruması aktif.")
+  {
+    id: "domates",
+    name: "Domates",
+    stage: "Çiçek / meyve",
+    healthScore: 84,
+    lastWateredDays: 2,
+    lastFedDays: 6,
+    note: "Kalsiyum ve potasyum takibi önemli."
+  },
 
-# --- SEKME 3: AI YAPRAK ANALİZ İSTASYONU ---
-with tab3:
-    st.markdown("### 📸 AI Yaprak Analiz İstasyonu")
-    uploaded_file = st.file_uploader("Bir Yaprak Fotoğrafı Seçin...", type=["jpg", "jpeg", "png"])
-    camera_file = st.camera_input("Veya Doğrudan Kamerayla Çekin 📸")
-    target_file = uploaded_file if uploaded_file is not None else camera_file
-    
-    if target_file is not None:
-        try:
-            image = Image.open(target_file)
-            st.image(image, caption="Sisteme Yüklenen Yaprak Resmi", use_container_width=True)
-            st.warning("🔄 Yapay Zeka Görüntü Analizini Çalıştırıyor...")
-            st.info("""
-            📊 **AI Analiz ve Teşhis Raporu:**
-            * **Muhtemel Neden:** Adana'nın aşırı sıcak gidişatına bağlı terleme stresi.
-            * **Doğrudan Aksiyon Reçetesi:** Akşam serinliğinde **Kalsiyum Gübresi** uygulaması yapın ve **Kaolin Kili** kaplamasını tazeleyin.
-            """)
-        except Exception as e:
-            st.error(f"Görsel yüklenirken bir hata oluştu: {e}")
+  {
+    id: "biber",
+    name: "Biber",
+    stage: "Çiçek / meyve",
+    healthScore: 82,
+    lastWateredDays: 2,
+    lastFedDays: 6,
+    note: "Çiçek dökümü kontrol edilmeli."
+  },
+
+  {
+    id: "cilek",
+    name: "Çilek",
+    stage: "Meyve dönemi",
+    healthScore: 76,
+    lastWateredDays: 2,
+    lastFedDays: 7,
+    note: "Yaprak altı zararlı kontrolü."
+  },
+
+  {
+    id: "salatalik",
+    name: "Salatalık",
+    stage: "Sürgün / meyve",
+    healthScore: 79,
+    lastWateredDays: 1,
+    lastFedDays: 5,
+    note: "Külleme riski takip edilmeli."
+  },
+
+  {
+    id: "kabak",
+    name: "Kabak",
+    stage: "Çiçeklenme",
+    healthScore: 80,
+    lastWateredDays: 2,
+    lastFedDays: 5,
+    note: "Külleme ve meyve bağlama kontrolü."
+  },
+
+  {
+    id: "bamya",
+    name: "Bamya",
+    stage: "Gelişim",
+    healthScore: 83,
+    lastWateredDays: 3,
+    lastFedDays: 6,
+    note: "Kök bölgesini sürekli ıslak bırakma."
+  },
+
+  {
+    id: "karpuz",
+    name: "Karpuz",
+    stage: "Kol atma",
+    healthScore: 78,
+    lastWateredDays: 3,
+    lastFedDays: 7,
+    note: "Potasyum ihtiyacı artacak."
+  },
+
+  {
+    id: "patlican",
+    name: "Patlıcan",
+    stage: "Çiçek / meyve",
+    healthScore: 81,
+    lastWateredDays: 2,
+    lastFedDays: 6,
+    note: "Yaprak biti ve beyaz sinek kontrolü."
+  }
+];
+
+export const logs: GardenLog[] = [
+  {
+    id: "1",
+    cropId: "misir",
+    cropName: "Mısır",
+    type: "gubre",
+    date: "2026-06-12",
+    title: "Amino asit uygulandı",
+    note: "Yapraktan amino asit verildi."
+  },
+
+  {
+    id: "2",
+    cropId: "domates",
+    cropName: "Domates",
+    type: "gozlem",
+    date: "2026-06-12",
+    title: "Genel kontrol",
+    note: "Çiçeklenme devam ediyor."
+  }
+];
+
+export const growthData = [
+  {
+    day: "1. Gün",
+    misir: 35,
+    domates: 22,
+    biber: 18,
+    patlican: 20
+  },
+
+  {
+    day: "7. Gün",
+    misir: 62,
+    domates: 31,
+    biber: 25,
+    patlican: 29
+  },
+
+  {
+    day: "14. Gün",
+    misir: 95,
+    domates: 46,
+    biber: 34,
+    patlican: 42
+  },
+
+  {
+    day: "21. Gün",
+    misir: 145,
+    domates: 61,
+    biber: 45,
+    patlican: 55
+  },
+
+  {
+    day: "28. Gün",
+    misir: 190,
+    domates: 75,
+    biber: 55,
+    patlican: 68
+  }
+];// components/CropCard.tsx
+
+import { Droplets, Sprout, Activity } from "lucide-react";
+
+type Crop = {
+  id: string;
+  name: string;
+  stage: string;
+  healthScore: number;
+  lastWateredDays: number;
+  lastFedDays: number;
+  note: string;
+};
+
+export function CropCard({ crop }: { crop: Crop }) {
+  return (
+    <div className="rounded-3xl border border-green-100 bg-white p-5 shadow-lg">
+
+      <div className="flex items-start justify-between">
+        <div>
+          <p className="text-sm text-green-700">
+            Ürün
+          </p>
+
+          <h3 className="text-2xl font-bold">
+            {crop.name}
+          </h3>
+        </div>
+
+        <div className="rounded-2xl bg-green-100 px-3 py-2 text-sm font-bold text-green-800">
+          %{crop.healthScore}
+        </div>
+      </div>
+
+      <p className="mt-3 text-sm text-gray-500">
+        {crop.stage}
+      </p>
+
+      <p className="mt-2 text-sm">
+        {crop.note}
+      </p>
+
+      <div className="mt-5 grid grid-cols-2 gap-3">
+
+        <div className="rounded-2xl bg-blue-50 p-3">
+          <Droplets size={18} />
+
+          <p className="mt-1 text-xs text-gray-500">
+            Son Sulama
+          </p>
+
+          <p className="font-bold">
+            {crop.lastWateredDays} gün önce
+          </p>
+        </div>
+
+        <div className="rounded-2xl bg-yellow-50 p-3">
+          <Sprout size={18} />
+
+          <p className="mt-1 text-xs text-gray-500">
+            Son Gübre
+          </p>
+
+          <p className="font-bold">
+            {crop.lastFedDays} gün önce
+          </p>
+        </div>
+
+      </div>
+
+      <button className="mt-4 flex w-full items-center justify-center gap-2 rounded-2xl bg-green-600 px-4 py-3 font-semibold text-white hover:bg-green-700">
+        <Activity size={18} />
+        Detayları Aç
+      </button>
+
+    </div>
+  );
+}"use client";
+
+import { useState } from "react";
+
+export default function LogForm() {
+  const [message, setMessage] = useState("");
+
+  const handleSave = () => {
+    setMessage("Kayıt başarıyla kaydedildi.");
+  };
+
+  return (
+    <div className="rounded-3xl border border-green-100 bg-white p-6 shadow-lg">
+
+      <h2 className="text-2xl font-bold">
+        Günlük Bahçe Kaydı
+      </h2>
+
+      <p className="mt-1 text-sm text-gray-500">
+        Sulama, gübre, ilaç veya gözlem kaydı oluştur.
+      </p>
+
+      <div className="mt-5 space-y-4">
+
+        <select className="w-full rounded-2xl border p-3">
+          <option>Mısır</option>
+          <option>Domates</option>
+          <option>Biber</option>
+          <option>Çilek</option>
+          <option>Salatalık</option>
+          <option>Kabak</option>
+          <option>Bamya</option>
+          <option>Karpuz</option>
+          <option>Patlıcan</option>
+        </select>
+
+        <select className="w-full rounded-2xl border p-3">
+          <option>Sulama</option>
+          <option>Gübre</option>
+          <option>İlaçlama</option>
+          <option>Fotoğraf</option>
+          <option>Gözlem</option>
+        </select>
+
+        <input
+          type="date"
+          className="w-full rounded-2xl border p-3"
+        />
+
+        <input
+          type="text"
+          placeholder="Başlık"
+          className="w-full rounded-2xl border p-3"
+        />
+
+        <textarea
+          placeholder="Örn: Dün amino asit uyguladım, yapraklar koyu yeşil."
+          className="min-h-[120px] w-full rounded-2xl border p-3"
+        />
+
+        <input
+          type="file"
+          accept="image/*"
+          className="w-full rounded-2xl border p-3"
+        />
+
+        <button
+          onClick={handleSave}
+          className="w-full rounded-2xl bg-green-600 py-3 font-semibold text-white hover:bg-green-700"
+        >
+          Kaydı Kaydet
+        </button>
+
+        {message && (
+          <div className="rounded-2xl bg-green-100 p-3 text-green-800">
+            {message}
+          </div>
+        )}
+
+      </div>
+    </div>
+  );
+}
